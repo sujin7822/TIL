@@ -24,6 +24,7 @@ from sklearn.ensemble import RandomForestRegressor #랜덤 포레스트 불러�
 
 train_df = pd.read_csv('train.csv')
 test_df = pd.read_csv('test.csv')
+submission = pd.read_csv('submission.csv')
 
 train_df.head()
 
@@ -100,6 +101,8 @@ test_df[obj_columns] = scaler.transform(test_df[obj_columns])
 
 train_df
 
+target = train_df['count']
+
 #train_df = pd.concat([pd.get_dummies(train_df['hour'], prefix='hour'), train_df], axis=1)
 
 #test_df = pd.concat([pd.get_dummies(test_df['hour'], prefix='hour'), test_df], axis=1)
@@ -130,7 +133,7 @@ train_df
 #    val_score = np.sqrt(mean_squared_error(val_true, val_pred))
 #    val_scores.append(val_score)
 #    test_pred = model.predict(X_test)
-    #test_pred = np.power(test_pred, 3).astype(int)
+#    #test_pred = np.power(test_pred, 3).astype(int)
 #    test_predictions.append(test_pred)
 
 #test_predictions = np.array(test_predictions)
@@ -152,67 +155,106 @@ train_df
 #submission['count'] = np.round(submission['count']).astype(int)
 #submission
 
-#Modelling
-#from sklearn.neighbors import KNeighborsClassifier
-#from sklearn.tree import DecisionTreeClassifier
-#from sklearn.ensemble import RandomForestClassifier
-#from sklearn.naive_bayes import GaussianNB
-#from sklearn.svm import SVC
+"""모델"""
 
-#import numpy as np
+#Modelling
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+
+import numpy as np
 
 #K-fold
-#from sklearn.model_selection import KFold
-#from sklearn.model_selection import cross_val_score
-#k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
 
 #kNN
-#clf = KNeighborsClassifier(n_neighbors = 13)
-#scoring = 'accuracy'
-#score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
-#print(score)
-#print(round(np.mean(score)*100, 2))
+clf = KNeighborsClassifier(n_neighbors = 13)
+scoring = 'accuracy'
+score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
+print(score)
+print(round(np.mean(score)*100, 2))
 
 #Decision Tree
-#clf = DecisionTreeClassifier()
-#scoring = 'accuracy'
-#score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
-#print(score)
-#print(round(np.mean(score)*100, 2))
+clf = DecisionTreeClassifier()
+scoring = 'accuracy'
+score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
+print(score)
+print(round(np.mean(score)*100, 2))
 
 #Random Forest
-#clf = RandomForestClassifier(n_estimators=13)
-#scoring = 'accuracy'
-#score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
-#print(score)
-#print(round(np.mean(score)*100, 2))
+clf = RandomForestClassifier(n_estimators=13)
+scoring = 'accuracy'
+score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
+print(score)
+print(round(np.mean(score)*100, 2))
 
 #Naive Bayes
-#clf = GaussianNB()
-#scoring = 'accuracy'
-#score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
-#print(score)
-#print(round(np.mean(score)*100, 2))
+clf = GaussianNB()
+scoring = 'accuracy'
+score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
+print(score)
+print(round(np.mean(score)*100, 2))
 
 #SVC
-#clf = SVC()
-#scoring = 'accuracy'
-#score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
-#print(score)
-#print(round(np.mean(score)*100, 2))
+clf = SVC()
+scoring = 'accuracy'
+score = cross_val_score(clf, train_df, train_df['count'], cv=k_fold, n_jobs=1, scoring=scoring)
+print(score)
+print(round(np.mean(score)*100, 2))
 
 #Testing
-#clf = DecisionTreeClassifier()
-#clf.fit(train_df, train_df['count'])
-#test_data = test_df.drop("id", axis=1).copy()
-#prediction = clf.predict(test_data)
+train_df = train_df.drop("id", axis=1).copy()
+train_df = train_df.drop("count", axis=1).copy()
+test_data = test_df.drop("id", axis=1).copy()
 
-"""모델구축"""
+#KNN
+clf = KNeighborsClassifier(n_neighbors = 13)
+clf.fit(train_df, target)
+prediction = clf.predict(test_data)
+submission['count'] = prediction
+submission.to_csv('KNN.csv', index=False)
+
+#Decision Tree
+clf = DecisionTreeClassifier()
+clf.fit(train_df, target)
+prediction = clf.predict(test_data)
+submission['count'] = prediction
+submission.to_csv('DecisiontreeClassifier.csv', index=False)
+
+#Random Forest
+clf = RandomForestClassifier(n_estimators=13)
+clf.fit(train_df, target)
+prediction = clf.predict(test_data)
+submission['count'] = prediction
+submission.to_csv('RandomForest.csv', index=False)
+
+#Naive Bayes
+clf = GaussianNB()
+clf.fit(train_df, target)
+prediction = clf.predict(test_data)
+submission['count'] = prediction
+submission.to_csv('NaiveBayes.csv', index=False)
+
+#SVC
+clf = SVC()
+clf.fit(train_df, target)
+prediction = clf.predict(test_data)
+submission['count'] = prediction
+submission.to_csv('SVC.csv', index=False)
+
+"""Decision Tree이 예측력이 가장 높게 나타남
+
+모델구축
+"""
 
 features = ['hour', 'hour_bef_temperature', 'hour_bef_windspeed']
 
 X_train = train_df[features]
-Y_train = train_df['count']
+Y_train = target
 
 X_test = test_df[features]
 
@@ -223,6 +265,13 @@ print(X_test.shape)
 model100 = RandomForestRegressor(n_estimators=100, random_state=0)   # Decision Tree 모델을 여러 개 모아서 만든 것 = Random Forest
 model100_5 = RandomForestRegressor(n_estimators=100, max_depth = 5, random_state=0)
 model200 = RandomForestRegressor(n_estimators=200)
+
+"""n_estimators : 의사결정나무의 수 (디폴트 100)
+
+random_state : 부트스트랩을 조정하는 역할을 함. 이번 실습에서는 0으로 고정하여 어떠한 환경에서도 똑같은 결과값이 나오도록 할것이다.
+
+max_depth : 노드의 깊이를 지정. 모델의 과대적합(over fitting)을 방지하기 위해 사용
+"""
 
 import sklearn
 from sklearn.tree import DecisionTreeClassifier
@@ -266,3 +315,5 @@ submission.to_csv('model_dtc.csv', index=False)
 
 submission['count'] = ypred5
 submission.to_csv('model_dtr.csv', index=False)
+
+"""결과 model200의 예측치가 가장 높은 것으로 나타남."""
